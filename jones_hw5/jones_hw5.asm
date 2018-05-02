@@ -13,24 +13,15 @@ section .data
     FAIL_MSG_SIZE equ $ - fail_msg
     nest_msg   db "Some brackets aren't nested properly.",10
     NEST_MSG_SIZE equ $ - nest_msg
-    curr_char  db 0
     loop_ctr   dd 0
 
 section .text
   _start:
     jmp .main
  
-  .do_read:
+  .read:
     mov eax, 3
     mov ebx, 0
-    mov ecx, readbuf
-    mov edx, BUF_SIZE
-    int 80h
-    ret
-
-  .do_write:
-    mov eax, 4
-    mov ebx, 1
     mov ecx, readbuf
     mov edx, BUF_SIZE
     int 80h
@@ -46,9 +37,10 @@ section .text
 
       mov ecx, [loop_ctr]
       mov eax, [readbuf+ecx]          ; Get the current character in the buffer
-      mov [curr_char], al
       inc ecx
       mov [loop_ctr], ecx             ; Increment the counter
+
+      ; From here, we branch based on the current character.
 
       cmp al, '('    ; Is it a `(` ?
       je .inc_rb 
@@ -65,8 +57,9 @@ section .text
       cmp al, '}'   ; Is it a `}` ?
       je .dec_cb
 
-      cmp al, 0     ; Is this the end of the message?
-      je .done
+      cmp al, 0     ; Since the buffer was zeroed, reaching a zero means
+                    ; we've probably reached the end of user input.
+      je .done      ; So jump to the end.
 
       jmp .bracket_loop
 
@@ -111,11 +104,13 @@ section .text
      
 
   .main:
-    call .do_read
+    call .read
     jmp .check_input
 
   .done:
-    ; We've counted up all the brackets so now we need to check if they match.
+    ; Earlier, we incremented for open brackets `([{` and decremented for close
+    ; brackets `)]}`. So if they're nested properly, all the variables should
+    ; contain zero. Confirm this.
     mov ecx, 0
     cmp ecx, [round_ctr]
     jne .fail
@@ -126,6 +121,7 @@ section .text
     
     jmp .success
 
+  ; Print an error message saying the brackets were invalid.
   .fail:
     mov eax, 4
     mov ebx, 1
@@ -134,6 +130,7 @@ section .text
     int 80h
     jmp .exit
 
+  ; Print an error message about improper nesting.
   .improper_nesting:
     mov eax, 4
     mov ebx, 1
@@ -141,7 +138,8 @@ section .text
     mov edx, NEST_MSG_SIZE
     int 80h
     jmp .exit
-   
+  
+  ; On success, just print the buffer. 
   .success:
     mov eax, 4
     mov ebx, 1
@@ -150,6 +148,7 @@ section .text
     int 80h
     jmp .exit
 
+  ; exit() system call.
   .exit:
     mov eax, 1
     mov ebx, 0
