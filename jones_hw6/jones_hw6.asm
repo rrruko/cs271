@@ -1,7 +1,7 @@
 global _start
 
-READ_SIZE     equ 20
-WRITE_SIZE    equ 20
+READ_SIZE     equ 1000
+WRITE_SIZE    equ 1000
 
 section .bss
     read_buf  resb READ_SIZE
@@ -36,6 +36,9 @@ section .text
       mov bl, [eax]                    ; bl now contains the next character
                                        ;   from the read buffer.
       push ebx                         ; Push ebx here so we can get it later.
+      mov al, 0
+      cmp bl, al                       ; Is this char \0? (i.e. end user input)
+      je .null_byte                    ; If so, jump. Otherwise...
       cmp bl, [last_seen]              ; Is this the same char as the last one?
       je .repeated_char                ; If so, jump. Otherwise...
         mov bl, [last_seen]            ; We've completed a run. Write the char.
@@ -43,6 +46,8 @@ section .text
         mov [eax], bl
         call .inc_write_ptr            ; We just wrote, so step forward.
         mov bl, [times_seen]           ; Now get the number of times we saw it.
+        cmp bl, 0                      ; Hey wait! Special case for first char.
+        je .repeated_char              ; Hmm... Why does jumping here work?
         add bl, '0'                    ; (n + '0' = the char for n)
         mov eax, [write_ptr]           ; Get the new value of write_ptr.
         mov [eax], bl                  ; Write the count char.
@@ -54,6 +59,12 @@ section .text
         mov eax, [times_seen]          ; We just want to increment this.
         inc eax
         mov [times_seen], eax
+        jmp .branch_end
+      .null_byte:
+        mov bl, 10                     ; Write a newline at the end and bail.
+        mov eax, [write_ptr]
+        mov [eax], bl
+        jmp .print_encoded             ; ! Break out here.
       .branch_end:                     ; We jumped to here earlier.
 
       pop ebx                          ; Pop the bl we pushed earlier, and
@@ -75,12 +86,14 @@ section .text
     ret
 
   .print_encoded:
+    ; write() syscall to print `write_buf`
     mov eax, 4
     mov ebx, 1
     mov ecx, write_buf
     mov edx, WRITE_SIZE
     int 80h
 
+    ; exit() syscall
     mov eax, 1
     mov ebx, 0
     int 80h
