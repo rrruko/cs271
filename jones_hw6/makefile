@@ -1,10 +1,10 @@
 SHELL = /bin/sh
 
-jones_hw6 : jones_hw6.o
-	ld -s -o jones_hw6 jones_hw6.o
+encoder : encoder.o
+	ld -s -o encoder encoder.o
 
-jones_hw6.o : jones_hw6.asm
-	nasm -f elf jones_hw6.asm
+encoder.o : encoder.asm
+	nasm -f elf encoder.asm
 
 clean :
-	rm jones_hw6 jones_hw6.o
+	rm encoder encoder.o
