@@ -31,6 +31,9 @@ section .text
   .encode:
     mov [read_ptr], dword read_buf
     mov [write_ptr], dword write_buf
+    mov eax, [read_ptr]
+    mov bl, [eax]
+    mov [last_seen], bl
     .encode_loop:
       mov eax, [read_ptr]              ; Deref the pointer and put it in bl.
       mov bl, [eax]                    ; bl now contains the next character
