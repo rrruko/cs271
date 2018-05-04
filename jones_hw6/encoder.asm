@@ -1,17 +1,18 @@
 global _start
 
-READ_SIZE     equ 1000
-WRITE_SIZE    equ 1000
+READ_BUF_SIZE  equ 1000
+WRITE_BUF_SIZE equ 1000
 
 section .bss
-    read_buf  resb READ_SIZE
+    read_buf  resb READ_BUF_SIZE
     READ_BUF_END equ $
-    write_buf resb WRITE_SIZE
+    write_buf resb WRITE_BUF_SIZE
     WRITE_BUF_END equ $
 
 section .data
     read_ptr   dd 0
     write_ptr  dd 0
+    write_size dd 0
     times_seen db 0
     last_seen  db 0
 
@@ -24,7 +25,7 @@ section .text
     mov eax, 3
     mov ebx, 0
     mov ecx, read_buf
-    mov edx, READ_SIZE
+    mov edx, READ_BUF_SIZE
     int 80h
     ret
 
@@ -67,6 +68,7 @@ section .text
         mov bl, 10                     ; Write a newline at the end and bail.
         mov eax, [write_ptr]
         mov [eax], bl
+        call .inc_write_ptr
         jmp .print_encoded             ; ! Break out here.
       .branch_end:                     ; We jumped to here earlier.
 
@@ -82,10 +84,12 @@ section .text
       jmp .encode_loop
 
   .inc_write_ptr:
-    ; increment write_ptr
-    mov eax, [write_ptr]
+    mov eax, [write_ptr]               ; Increment write pointer
     inc eax
     mov [write_ptr], eax
+    mov eax, [write_size]              ; Increment write size
+    inc eax
+    mov [write_size], eax
     ret
 
   .print_encoded:
@@ -93,7 +97,7 @@ section .text
     mov eax, 4
     mov ebx, 1
     mov ecx, write_buf
-    mov edx, WRITE_SIZE
+    mov edx, [write_size]
     int 80h
 
     ; exit() syscall

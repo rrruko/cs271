@@ -12,6 +12,7 @@ section .bss
 section .data
     read_ptr   dd 0
     write_ptr  dd 0
+    write_size dd 0
 
 section .text
   _start:
@@ -53,13 +54,16 @@ section .text
     mov bl, 10                         ; 10 is the ASCII code for newline (\n).
     mov eax, [write_ptr]               ; Write a newline at the end since
     mov [eax], bl                      ; we're done.
+    call .inc_write_ptr
     call .print_decoded
 
   .inc_write_ptr:
-    ; increment write_ptr
-    mov eax, [write_ptr]
+    mov eax, [write_ptr]               ; Increment write pointer
     inc eax
     mov [write_ptr], eax
+    mov eax, [write_size]              ; Increment write size
+    inc eax
+    mov [write_size], eax
     ret
 
   .inc_read_ptr:
@@ -74,7 +78,7 @@ section .text
     mov eax, 4
     mov ebx, 1
     mov ecx, write_buf
-    mov edx, WRITE_SIZE
+    mov edx, [write_size]
     int 80h
 
     ; exit() syscall
