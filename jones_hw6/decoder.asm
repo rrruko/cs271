@@ -38,7 +38,7 @@ section .text
       cmp bl, 0
       je .done
       cmp cl, 0
-      je .wtf
+      je .done
       sub cl, '0'                      ; Now cl is the actual correct number.
       .unpack:                         ; Write bl, cl times.
         mov eax, [write_ptr]           ; Get the write_ptr.
@@ -47,12 +47,14 @@ section .text
         call .inc_write_ptr
         dec cl                         ; Decrement the loop counter.
         jnz .unpack                    ; Loop if non-zero.
-      call .inc_read_ptr
-      call .inc_read_ptr
+      call .inc_read_ptr               ; Increment twice, since the loop reads
+      call .inc_read_ptr               ; twice.
       jmp .decode_loop
 
   .done:
-  .wtf:
+    mov bl, 10                         ; 10 is the ASCII code for newline (\n).
+    mov eax, [write_ptr]               ; Write a newline at the end since
+    mov [eax], bl                      ; we're done.
     call .print_decoded
 
   .inc_write_ptr:
