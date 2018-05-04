@@ -12,8 +12,6 @@ section .bss
 section .data
     read_ptr   dd 0
     write_ptr  dd 0
-    times_seen db 0
-    last_seen  db 0
 
 section .text
   _start:
