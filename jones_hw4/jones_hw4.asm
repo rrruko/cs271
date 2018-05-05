@@ -42,10 +42,10 @@ section .text
     mov [x], al                        ; Write to x.
 
     ; Finish
-    mov al, [x]
-    mov bl, [y]
-    mov cl, [z]
-    mov dl, [a]
+    mov eax, [x]
+    mov ebx, [y]
+    mov ecx, [z]
+    mov edx, [a]
 
     ; exit()
     mov eax, 1
