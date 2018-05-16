@@ -6,17 +6,16 @@ section .bss
     readbuf resb BUF_SIZE
 
 section .data
-    round_ctr  dd 0
-    square_ctr dd 0
-    curly_ctr  dd 0
     fail_msg   db "Some brackets don't match.",10
     FAIL_MSG_SIZE equ $ - fail_msg
     nest_msg   db "Some brackets aren't nested properly.",10
     NEST_MSG_SIZE equ $ - nest_msg
-    loop_ctr   dd 0
+    loop_ctr dd 0
+    initial_esp dd 0
 
 section .text
   _start:
+    mov [initial_esp], esp
     jmp .main
  
   .read:
@@ -41,21 +40,23 @@ section .text
       mov [loop_ctr], ecx             ; Increment the counter
 
       ; From here, we branch based on the current character.
-
-      cmp al, '('    ; Is it a `(` ?
-      je .inc_rb 
-      cmp al, ')'    ; Is it a `)` ?
-      je .dec_rb
-
-      cmp al, '['    ; Is it a `[` ? 
-      je .inc_sb
-      cmp al, ']'    ; Is it a `]` ?
-      je .dec_sb
-
-      cmp al, '{'   ; Is it a `{` ?
-      je .inc_cb
-      cmp al, '}'   ; Is it a `}` ?
-      je .dec_cb
+      cmp al, '('
+      je .open
+      cmp al, '['
+      je .open
+      cmp al, '{'
+      je .open
+      jmp .not_open
+      .open:
+        push eax
+      .not_open:
+      cmp al, ')'
+      je .close_round
+      cmp al, ']'
+      je .close_square
+      cmp al, '}'
+      je .close_curly
+      .continue:
 
       cmp al, 0     ; Since the buffer was zeroed, reaching a zero means
                     ; we've probably reached the end of user input.
@@ -65,61 +66,29 @@ section .text
 
     .reached_end:
       jmp .bracket_loop
-    .inc_rb:
-      mov eax, [round_ctr]
-      inc eax
-      mov [round_ctr], eax
-      jmp .bracket_loop
-    .dec_rb:
-      mov eax, [round_ctr]
-      dec eax
-      test eax, eax
-      js .improper_nesting ; If the counter ever goes negative, fail
-      mov [round_ctr], eax
-      jmp .bracket_loop
-    .inc_sb:
-      mov eax, [square_ctr]
-      inc eax
-      mov [square_ctr], eax
-      jmp .bracket_loop
-    .dec_sb:
-      mov eax, [square_ctr]
-      dec eax
-      test eax, eax
-      js .improper_nesting ; If the counter ever goes negative, fail
-      mov [square_ctr], eax
-      jmp .bracket_loop
-    .inc_cb:
-      mov eax, [curly_ctr]
-      inc eax
-      mov [curly_ctr], eax
-      jmp .bracket_loop
-    .dec_cb:
-      mov eax, [curly_ctr]
-      dec eax
-      test eax, eax
-      js .improper_nesting ; If the counter ever goes negative, fail
-      mov [curly_ctr], eax
-      jmp .bracket_loop
-     
-
+    .close_round:
+      pop eax                          ; This should be a '('
+      cmp al, '(' 
+      jne .fail
+      jmp .continue
+    .close_square:
+      pop eax
+      cmp al, '['
+      jne .fail
+      jmp .continue
+    .close_curly:
+      pop eax
+      cmp al, '{'
+      jne .fail
+      jmp .continue
   .main:
     call .read
     jmp .check_input
 
   .done:
-    ; Earlier, we incremented for open brackets `([{` and decremented for close
-    ; brackets `)]}`. So if they're nested properly, all the variables should
-    ; contain zero. Confirm this.
-    mov ecx, 0
-    cmp ecx, [round_ctr]
-    jne .fail
-    cmp ecx, [square_ctr]
-    jne .fail
-    cmp ecx, [curly_ctr]
-    jne .fail
-    
-    jmp .success
+    cmp [initial_esp], esp
+    je .success
+    jmp .fail
 
   ; Print an error message saying the brackets were invalid.
   .fail:
