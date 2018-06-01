@@ -1,3 +1,6 @@
+section .data
+        digit_count dd 0
+
 section .text
 global count_digits;
 
@@ -8,7 +11,18 @@ global count_digits;
 ; return value (number of digits) stored in eax
 
 count_digits:
+        cmp eax, 0
+        je .special_zero_case
+        mov ebx, 10
+        .loop:
+        xor edx, edx
+        div ebx                        ; Quotient: eax, remainder: edx
+        add [digit_count], dword 1           
+        test eax, eax                  ; Is eax 0?
+        jnz .loop
+        mov eax, [digit_count]
+        ret 
 
-	mov eax,5	; 8 factorial = 40320, which has 5 digits 
-	ret;
-
+.special_zero_case:
+        mov eax, 1
+        ret

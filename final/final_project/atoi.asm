@@ -23,7 +23,7 @@ global atoi;
 atoi:
         add eax, ebx                   ; We're going to be traversing the
         mov [atoi_ptr], eax            ;   string backwards from the end.
-        mov [atoi_pow], dword 1
+        mov [atoi_pow], dword 2
         mov ecx, ebx                   ; Repeat the following ebx times:
         .loop:                         ; loop
         mov bl, [atoi_ptr]             ; Put current string byte in bl

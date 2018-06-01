@@ -1,3 +1,6 @@
+section .data
+        itoa_ctr dd 0
+
 section .text
 global itoa;
 
@@ -7,11 +10,15 @@ global itoa;
 ; e.g., integer 40320 gets converted to ASCII '40320'
 
 itoa:
-
-	mov byte [ecx],'4';
-	mov byte [ecx+1],'0';
-	mov byte [ecx+2],'3';
-	mov byte [ecx+3],'2';
-	mov byte [ecx+4],'0';
-	ret;
-
+        add ecx, ebx
+        mov [itoa_ctr], ebx
+        mov ebx, 10
+        .loop:
+        xor edx, edx
+        div ebx                        ; Quotient: eax, remainder: edx
+        add dl, '0'                    ; Get corresponding ASCII digit for edx
+        mov [ecx], dl                  ; Write byte
+        dec ecx                        ; Move to next (previous) byte
+        sub [itoa_ctr], dword 1
+        jnz .loop
+        ret
