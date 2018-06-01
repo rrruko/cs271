@@ -7,7 +7,11 @@ global factorial
 ; return value N! (N factorial) stored in eax
 
 factorial:
-
-	mov eax,40320	; 8! = 40320
-	ret;
+        mov ebx, eax
+        .loop:
+        dec ebx
+        mul ebx
+        cmp ebx, 1
+        jne .loop
+        ret
 
