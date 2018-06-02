@@ -8,10 +8,10 @@ global factorial
 
 factorial:
         mov ebx, eax
+        mov eax, 1
         .loop:
-        dec ebx
         mul ebx
-        cmp ebx, 1
-        jne .loop
+        dec ebx
+        jnz .loop
         ret
 

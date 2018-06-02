@@ -21,6 +21,7 @@ global atoi;
 ;     pow *= 10
 ;   return sum
 atoi:
+        dec ebx                        ; Cheap hack
         add eax, ebx                   ; We're going to be traversing the
         mov [atoi_ptr], eax            ;   string backwards from the end.
         mov ecx, ebx                   ; Repeat the following ebx times:
