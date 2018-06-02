@@ -11,6 +11,7 @@ global itoa;
 
 itoa:
         add ecx, ebx
+        dec ecx
         mov [itoa_ctr], ebx
         mov ebx, 10
         .loop:
