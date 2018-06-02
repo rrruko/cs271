@@ -5,7 +5,7 @@
         mov ecx, %1
         mov edx, %2
         int 0x80
-        mov dword [%3], eax
+        mov [%3], eax
 %endmacro
 
 ; arg: 1 - output buffer; 2 - output buffer length

@@ -1,6 +1,6 @@
 section .data
         atoi_ptr dd 0
-        atoi_pow dd 0
+        atoi_pow dd 1
 	atoi_res dd 0
 
 section .text
@@ -23,21 +23,17 @@ global atoi;
 atoi:
         add eax, ebx                   ; We're going to be traversing the
         mov [atoi_ptr], eax            ;   string backwards from the end.
-        mov [atoi_pow], dword 2
         mov ecx, ebx                   ; Repeat the following ebx times:
         .loop:                         ; loop
-        mov bl, [atoi_ptr]             ; Put current string byte in bl
+        sub [atoi_ptr], dword 1        ;  Move to next (previous?) ASCII byte
+        xor ebx, ebx
+        mov eax, [atoi_ptr]            ; Prepare to dereference pointer
+        mov bl, [eax]                  ; Put current string byte in bl
         sub bl, '0'                    ; Compute the value of the digit
-        xor eax, eax                   ; Zero eax
-        mov al, bl                     ; Put that value in al
+        mov eax, ebx                   ; Put that value in al
         mul dword [atoi_pow]           ; Multiply by the current power of ten
-        mov ebx, [atoi_res]            ; Get the current sum
-        add eax, ebx                   ; Update the current sum with new digit
-        mov [atoi_res], eax            ; Write the current sum
+        add [atoi_res], eax            ; Update the current sum with new digit
         call .mul_pow_by_ten           ; Next time multiply by next power of 10
-        mov eax, [atoi_ptr]            ; \
-        dec eax                        ;  Move to next ASCII byte (notice dec)
-        mov [atoi_ptr], eax            ; /
 	loop .loop                     ; loop loop
         mov eax, [atoi_res]            ; Return the sum in eax
 	ret 
