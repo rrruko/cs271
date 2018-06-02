@@ -11,8 +11,6 @@ global count_digits;
 ; return value (number of digits) stored in eax
 
 count_digits:
-        cmp eax, 0
-        je .special_zero_case
         mov ebx, 10
         .loop:
         xor edx, edx
@@ -22,7 +20,3 @@ count_digits:
         jnz .loop
         mov eax, [digit_count]
         ret 
-
-.special_zero_case:
-        mov eax, 1
-        ret
