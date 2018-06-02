@@ -10,8 +10,11 @@ factorial:
         mov ebx, eax
         mov eax, 1
         .loop:
+        cmp ebx, 0
+        jle .done
         mul ebx
         dec ebx
-        jnz .loop
+        jmp .loop
+        .done:
         ret
 
